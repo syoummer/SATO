@@ -143,7 +143,7 @@ int main(int ac, char* av[]){
   genTiles(universe,bucket_size,recs);
   double elapsed_time = t.elapsed();
   cout<< "stat:ptime," << bucket_size << "," << tiles.size() <<"," << elapsed_time << endl;
-  /* 
+  
   // build in memory Tree
   //stream.rewind();
   SpaceStreamReader stream2(inputPath);
@@ -179,7 +179,7 @@ int main(int ac, char* av[]){
 
   delete tree;
   delete memoryFile;
-  */
+
   
   // cleanup allocated memory 
   for (vector<RTree::Data*>::iterator it = tiles.begin() ; it != tiles.end(); ++it) 

@@ -2,12 +2,6 @@
 
 # Extract the mbbs from spatial objects
 INPUT_1=/user/hoang/sample/osm1tsv
-OUTPUT_1=/user/hoang/sample/osm1mbb
-MBB_EXTRACT_PATH=mbbextractor
-
-#hdfs dfs -rm -r ${OUTPUT_1}
-
-#hadoop jar ${HADOOP_STREAMING_PATH}/hadoop-streaming.jar -input ${INPUT_1} -output ${OUTPUT_1} -file ${MBB_EXTRACT_PATH} -mapper "mbbextractor 1 5" -reducer None -numReduceTasks 0
 
 # Determine the min, max dimensions of the space
 INPUT_2=/user/hoang/sample/osm1mbb
@@ -37,11 +31,14 @@ echo ${min_y}
 echo ${max_y}
 
 # Normalize the mbbs
-INPUT_3=${OUTPUT_1}
-OUTPUT_3=/user/hoang/sample/osm1mbbnorm
-MBB_NORM_PATH=mbbnorm.py
+INPUT_4=/user/hoang/sample/osm1mbbnorm
+INPUT_4B=/user/hoang/sample/osm2mbbnorm
+OUTPUT_4=/user/hoang/sample/mbbfilenorm
 
-#hdfs dfs -rm -r ${OUTPUT_3}
+
+
+
+#hdfs dfs -rm -r ${OUTPUT_4}
 
 #hadoop jar ${HADOOP_STREAMING_PATH}/hadoop-streaming.jar -input ${INPUT_3} -output ${OUTPUT_3} -file ${MBB_NORM_PATH} -mapper "mbbnorm.py ${min_x} ${min_y} ${max_x} ${max_y}" -reducer None -numReduceTasks 0
 

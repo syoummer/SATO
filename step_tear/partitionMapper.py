@@ -19,11 +19,13 @@ def main():
     # Open Region MBB file
     partfile = open("mbbnormfile", "r")
     for line in partfile:
-        arr = line.split("\t")
+        arr = line.split()
         # For OSM:
         #idx.insert(int(arr[0]), ( float(arr[1]) * 360.0 - 180.0, float(arr[2]) * 180.0 - 90, float(arr[3]) * 360.0 - 180.0, float(arr[4]) * 180.0 - 90.0) )
         
-        idx.insert(int(arr[0]), ( float(arr[1]) * span_x + min_x, float(arr[2])* span_x + min_x, float(arr[3]) * span_y + min_y, float(arr[4]) * span_y + min_y) )
+        idx.insert(int(arr[0]), ( float(arr[1]) * span_x + min_x, float(arr[2])*
+                                 span_y + min_y, float(arr[3]) * span_x + min_x,
+                                 float(arr[4]) * span_y + min_y) )
 
     for line in sys.stdin:
         arr = line.strip().split("\t")
