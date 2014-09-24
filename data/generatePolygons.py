@@ -38,6 +38,9 @@ def generateGeom(min_x, min_y, max_x, max_y, obj_size):
     return poly
 
 def main():
+    if len(sys.argv) != 8:
+        print("Not enough arguments (7): [min_x] [min_y] [max_x] [max_y] [num_obj] [number spatialattr] [obj_size]")
+        sys.exit(1)
     space_min_x = float(sys.argv[1])
     space_min_y = float(sys.argv[2])
     space_max_x = float(sys.argv[3])
@@ -55,7 +58,7 @@ def main():
         nonspattr = ""
         for t in range(0, num_non_spatial_attr):
             nonspattr += "\t" + str(int(round(random.random() * 8, 0)))
-        print(str(id), "\t", geom, nonspattr)
+        print(str(id) + "\t" + geom + nonspattr)
         id = id + 1
 
     sys.stdout.flush()
