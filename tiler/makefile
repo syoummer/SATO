@@ -3,8 +3,8 @@ spatial=/home/aaji/softs
 
 UNAME		= $(shell uname)
 OPTFLAGS	= -O2 -Wno-write-strings
-INCBASE		= -I. -I/usr/local/include
-LIBBASE		= -lspatialindex -lgeos -L/usr/local/lib
+INCBASE		= -I. -I/usr/local/lib -I/${SATO_INC_PATH}
+LIBBASE		= -lspatialindex -lgeos -L/usr/local/lib -I/${SATO_LIB_PATH}
 
 ifneq (,$(findstring Linux,$(shell uname -a)))
     INCFLAGS = -I$(spatial)/include

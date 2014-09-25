@@ -1,19 +1,10 @@
-spatial=/home/aaji/softs
-
 UNAME		= $(shell uname)
-OPTFLAGS	= -O2
+OPTFLAGS	= -O2 -Wall -std=c++0x
 INCBASE		= -I. -I../../
 LIBBASE		= -lspatialindex -lboost_program_options
 
-ifneq (,$(findstring emory,$(shell uname -a)))
-    INCFLAGS = -I$(spatial)/include
-    LIBS = -L$(spatial)/lib
-else 
-    ifeq ($(UNAME), Darwin)
-    INCFLAGS = -I /usr/local/include
-    LIBS = -L /usr/local/lib
-endif
-endif
+INCFLAGS = -I ${SATO_INC_PATH}
+LIBS = -L ${SATO_LIB_PATH}
 
 CFLAGS      = $(OPTFLAGS) $(INCBASE) $(INCFLAGS) 
 LDFLAGS     = $(LIBBASE) $(LIBS)

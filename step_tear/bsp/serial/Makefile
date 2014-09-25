@@ -1,20 +1,10 @@
-spatial=/home/aaji/softs
-hoangboost=/home/hoang/Downloads/boost_1_48_0
-
 UNAME		= $(shell uname)
 OPTFLAGS	= -O2 -Wall -std=c++0x
-INCBASE		= -I. -I../../ -I${hoangboost}
+INCBASE		= -I. -I../../
 LIBBASE		= -lspatialindex -lboost_program_options
 
-ifneq (,$(findstring emory,$(shell uname -a)))
-    INCFLAGS = -I$(spatial)/include
-    LIBS = -L$(spatial)/lib
-else 
-    ifeq ($(UNAME), Darwin)
-    INCFLAGS = -I /usr/local/include
-    LIBS = -L /usr/local/lib
-endif
-endif
+INCFLAGS = -I ${SATO_INC_PATH}
+LIBS = -L ${SATO_LIB_PATH}
 
 CFLAGS      = $(OPTFLAGS) $(INCBASE) $(INCFLAGS) 
 LDFLAGS     = $(LIBBASE) $(LIBS)
@@ -29,17 +19,13 @@ endif
 
 
 TARGET = bsp
-TARGET2 = reducerBsp
 Obj = $(TARGET).o 
 
-all: $(TARGET) ${TARGET2}
+all: $(TARGET)
 
 debug: CXX += -DDEBUG -g
 debug: CC += -DDEBUG -g
 debug: all 
-
-reducerBsp: reducerBsp.cpp commonspatial.h $(Obj)
-	$(CXX) $^ $(CFLAGS) $(LDFLAGS) -o $@
 
 bsp: main.cpp commonspatial.h $(Obj)
 	$(CXX) $^ $(CFLAGS) $(LDFLAGS) -o $@

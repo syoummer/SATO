@@ -1,8 +1,8 @@
 
 prefix=/usr/local
 
-libbase=/usr/local/lib
-incbase=/usr/local/include
+libbase=${SATO_LIB_PATH}
+incbase=${SATO_INC_PATH}
 
 OPTFLAGS	= -O2
 INCFLAGS	= -I $(incbase)
