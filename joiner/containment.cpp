@@ -1,6 +1,5 @@
-#include "hadoopgis.h"
-#include "cmdline.h"
-#include <time.h>
+#include "resquecommon.h"
+#include <iostream>
 
 /* The program extracts the minimum bounding boxes of objects */
 
@@ -13,16 +12,13 @@
  *         some_id min_x TAB min_y TAB max_x TAB max_y
  * */
 
+
 GeometryFactory *gf = NULL;
 WKTReader *wkt_reader = NULL;
 IStorageManager * storage = NULL;
 ISpatialIndex * spidx = NULL;
-map<id_type,string> id_polygon ;
-vector<id_type> hits ; 
-char * prefix;
 
 int GEOM_IDX = -1;
-double ratio = 1.0;
 
 void freeObjects() {
     // garbage collection 
@@ -44,20 +40,36 @@ int main(int argc, char **argv) {
   double min_y;
   double max_y;
 
-  GEOM_IDX = atoi(argv[1]) -1;
+  if (argc < 6) {
+	cerr << "Usage: "<< argv[0] << " [min_x] [min_y] [max_x] [max_y]" << endl;
+        return -1;
+  }
+
+  GEOM_IDX = atoi(argv[5]) + 1 ; // -1 + 2 (partition id + legacy field)
   if (GEOM_IDX < 1) {
     cerr << "Invalid arguments for field indices" << endl;
     return -1;
   }
 
-  ratio = strtod(argv[2], NULL);
-   
-  // initlize the GEOS ibjects
+  // initlize the GEOS objects
   gf = new GeometryFactory(new PrecisionModel(),0);
   wkt_reader= new WKTReader(gf);
 
+  Geometry* window;
+  stringstream ss;
+  min_x = strtod(argv[1], NULL);
+  min_y = strtod(argv[2], NULL);
+  max_x = strtod(argv[3], NULL);
+  max_y = strtod(argv[4], NULL);
 
+  ss << shapebegin << min_x << SPACE << min_y << COMMA
+         << min_x << SPACE << max_y << COMMA
+         << max_x << SPACE << max_y << COMMA
+         << max_x << SPACE << min_y << COMMA
+         << min_x << SPACE << min_y << shapeend;
+  window = wkt_reader->read(ss.str());
   // process input data 
+  //
   map<int,Geometry*> geom_polygons;
   string input_line;
   vector<string> fields;
@@ -67,7 +79,6 @@ int main(int argc, char **argv) {
   const Envelope * env;
 
 
-  long count = 1;
   while(cin && getline(cin, input_line) && !cin.eof()){
     fields = parse(input_line);
     //if (fields[ID_IDX].length() <1 )
@@ -83,10 +94,8 @@ int main(int argc, char **argv) {
     }
     // try {
     geom = wkt_reader->read(fields[GEOM_IDX]);
-    env = geom->getEnvelopeInternal();
-    if ( (double) rand() / (double) (RAND_MAX) < ratio) {
-        cout << count++ << TAB  << env->getMinX() << TAB << env->getMinY() << TAB 
-          << env->getMaxX() << TAB << env->getMaxY() << endl;
+    if (geom->intersects(window)) {
+        cout << input_line << endl;
     }
   }
 

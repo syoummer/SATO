@@ -8,6 +8,7 @@ import math
 # Input params: space_min_x, space_min_y, space_max_x,
 #        space_max_y, bucket_size, total_number_objects
 #
+# The output is the normalized MBR of regions for partitions
 def main():
     if len(sys.argv) != 7:
         sys.exit("Not enough arguments (6)")
@@ -38,17 +39,24 @@ def main():
     #sys.stderr.write("num_x_split", str(x_split))
     #sys.stderr.write("num_y_split", str(y_split))
 
-    xtile = span_x / x_split
-    ytile = span_y / y_split
-
+    xtile = 1.0 / x_split
+    ytile = 1.0 / y_split
     id = 0
-    for x in range(0, x_split):
-        for y in range(0, y_split):
+    x = 0
+    y = 0
+    for  x in range(0, x_split) :
+        for y in range(0, y_split) :
             id += 1
-            print("\t".join((str(id), str(min_x + x * xtile ),
-                           str(min_y + y * ytile),
-                           str(min_x + (x + 1) * xtile),
-                            str(min_y + (y + 1) * ytile))))
+    #        print("\t".join((str(id), str(min_x + x * xtile ),
+    #                       str(min_y + y * ytile),
+    #                       str(min_x + (x + 1) * xtile),
+    #                        str(min_y + (y + 1) * ytile))))
+            print("\t".join((str(id), str( x * xtile ),
+                           str(y * ytile),
+                           str((x + 1) * xtile),
+                            str((y + 1) * ytile)))) 
+            y += 1
+        x += 1
 
     sys.stdout.flush()
 

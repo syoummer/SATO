@@ -5,8 +5,8 @@
 # Configuring lib and include directories
 usage(){
   echo -e "installSATO.sh [options]\n \
-  --libpath \t directory path to the lib locations of dependencies (include lib)\n \
-  --incpath \t directory path to the include locations"
+  -l PATH, --libpath=PATH \t directory path to the lib locations of dependencies (include lib)\n \
+  -i PATH, --incpath=PATH \t directory path to the include locations"
   exit 1
 }
 
@@ -65,11 +65,17 @@ if [ ! "$libpath" ] ; then
 fi
 
 # Cd and running individual makefiles
-exit 1
 echo $incpath
 echo $libpath
+SATO_INC_PATH=$incpath
+SATO_LIB_PATH=$libpath
+
 export SATO_INC_PATH=$incpath
 export SATO_LIB_PATH=$libpath
+
+# Save the paths
+echo "SATO_INC_PATH=${SATO_INC_PATH}" > ../sato.cfg
+echo "SATO_LIB_PATH=${SATO_LIB_PATH}" >> ../sato.cfg
 
 # cd to the directory where installSATO.sh is located.
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"

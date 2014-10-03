@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#!/usr/bin/env python
 
 from rtree import index
 import sys
@@ -15,9 +15,10 @@ def main():
     max_y = float(sys.argv[4])
     span_x = max_x - min_x
     span_y = max_y - min_y
+    filename = sys.argv[5]
     
     # Open Region MBB file
-    partfile = open("mbbnormfile", "r")
+    partfile = open("filename", "r")
     for line in partfile:
         arr = line.split()
         # For OSM:

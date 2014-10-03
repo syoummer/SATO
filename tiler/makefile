@@ -3,8 +3,8 @@ spatial=/home/aaji/softs
 
 UNAME		= $(shell uname)
 OPTFLAGS	= -O2 -Wno-write-strings
-INCBASE		= -I. -I/usr/local/lib -I/${SATO_INC_PATH}
-LIBBASE		= -lspatialindex -lgeos -L/usr/local/lib -I/${SATO_LIB_PATH}
+INCBASE		= -I. -I/usr/local/lib -I ${SATO_INC_PATH}
+LIBBASE		= -lspatialindex -lgeos -L/usr/local/lib -L ${SATO_LIB_PATH}
 
 ifneq (,$(findstring Linux,$(shell uname -a)))
     INCFLAGS = -I$(spatial)/include
@@ -26,7 +26,7 @@ else
 endif
 
 
-all: hgtiler mbbextractor
+all: hgtiler mbbextractor partitionMapper
 
 debug: CXX += -DDEBUG -g
 debug: CC += -DDEBUG -g
@@ -42,6 +42,10 @@ hgtiler: cmd.o tiler.cpp hadoopgis.h tokenizer.h
 
 mbbextractor: cmd.o mbbextractor.cpp hadoopgis.h tokenizer.h
 	$(CC) mbbextractor.cpp cmd.o $(CFLAGS) $(LDFLAGS) $(OPTFLAGS) -o mbbextractor
+
+partitionMapper: cmd.o partitionMapper.cpp hadoopgis.h tokenizer.h
+	$(CC) -std=c++0x partitionMapper.cpp cmd.o $(CFLAGS) $(LDFLAGS) $(OPTFLAGS) -o partitionMapper
+
 clean:
 	@rm -f *.o hgtiler mbbextractor
 

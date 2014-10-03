@@ -55,6 +55,8 @@ const string DASH= "-";
 const string COMMA = ",";
 const string SPACE = " ";
 
+const string shapebegin = "POLYGON((";
+const string shapeend = "))";
 
 vector<id_type> hits;
 
