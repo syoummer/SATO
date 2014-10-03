@@ -116,6 +116,9 @@ fi
 # Setting global variables
 HJAR=${HADOOP_STREAMING_PATH}/hadoop-streaming.jar
 
+blockSize=32000000
+
+
 # Load the SATO configuration file
 source ../sato.cfg
 LD_CONFIG_PATH=${LD_LIBRARY_PATH}:${SATO_LIB_PATH}
@@ -237,7 +240,6 @@ echo "Total size in bytes: "${totalSize}
 echo "Number of objects: "${num_objects}
 avgObjSize=$((totalSize / num_objects))
 
-blockSize=1600000
 partitionSize=$((blockSize / avgObjSize))
 
 echo "partitionsize=${partitionSize}" >> ${TEMP_CFG_FILE}
