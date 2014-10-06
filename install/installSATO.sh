@@ -87,8 +87,8 @@ make
 cd ../joiner
 make
 
-cd ../step_tear/fg/serial
-make
+#cd ../step_tear/fg/serial
+# make
 cd ../../bsp/serial
 make
 cd ../../rplus/serial

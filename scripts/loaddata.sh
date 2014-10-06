@@ -14,6 +14,12 @@ usage(){
   exit 1
 }
 
+# Setting global variables
+HJAR=${HADOOP_STREAMING_PATH}/hadoop-streaming.jar
+blockSize=32000000
+SATO_CONFIG_FILE_NAME=data.cfg
+SATO_INDEX_FILE_NAME=partfile.idx
+
 # Default empty values
 datapath=""
 prefixpath=""
@@ -99,6 +105,15 @@ do
      esac
 done
 
+SATO_CONFIG=../sato.cfg
+# Load the SATO configuration file
+if [ -e "${SATO_CONFIG}" ]; then
+  source ${SATO_CONFIG}
+else
+  echo "SATO configuration file not found!"
+fi
+
+LD_CONFIG_PATH=${LD_LIBRARY_PATH}:${SATO_LIB_PATH}
 if [ ! "$datapath" ]; then
   echo "ERROR: Missing path to the data. See --help" >&2
   exit 1
@@ -113,21 +128,14 @@ if [ ! "$geomid" ]; then
   exit 1
 fi
 
-# Setting global variables
-HJAR=${HADOOP_STREAMING_PATH}/hadoop-streaming.jar
-
-blockSize=32000000
-
-
-# Load the SATO configuration file
-source ../sato.cfg
-LD_CONFIG_PATH=${LD_LIBRARY_PATH}:${SATO_LIB_PATH}
+if ! [ "$method" == "fg" ]  && ! [ "$method" == "bsp" ]; then
+   echo "Invalid partitioning method"
+   exit 1
+fi
 
 
 # Creating the path with the HDFS prefix
 hdfs dfs -mkdir -p ${prefixpath}
-
-
 
 INPUT_1=${datapath}
 OUTPUT_1=${prefixpath}/sampledtsv
@@ -190,8 +198,10 @@ hdfs dfs -rm -f -r ${OUTPUT_3}
 hadoop jar ${HJAR} -input ${INPUT_3} -output ${OUTPUT_3} -file ${MAPPER_3_PATH} -mapper "${MAPPER_3} 1" -reducer "${MAPPER_3} 0" -numReduceTasks 1
 
 # Normalize the space using the dimension obtained from above
-TEMP_FILE_NAME=tmpSpaceDimension
-rm $TEMP_FILE_NAME
+# TEMP_FILE_NAME=tmpSpaceDimension
+#rm $TEMP_FILE_NAME
+#create a temporary file
+TEMP_FILE_NAME="$(mktemp)"
 hdfs dfs -cat ${OUTPUT_3}/part-00000 > ${TEMP_FILE_NAME}
 
 min_x=`(cat ${TEMP_FILE_NAME} | cut -f1)`
@@ -200,9 +210,11 @@ max_x=`(cat ${TEMP_FILE_NAME} | cut -f3)`
 max_y=`(cat ${TEMP_FILE_NAME} | cut -f4)`
 num_objects=`(cat ${TEMP_FILE_NAME} | cut -f5)`
 
-rm -f ${TEMP_FILE_NAME}
+#rm -f ${TEMP_FILE_NAME}
 
-TEMP_CFG_FILE=data.cfg
+
+TEMP_CFG_FILE=${TEMP_FILE_NAME}
+# SATO_DATA_CFG=data.cfg
 
 # Outputting the space dimensions
 echo ${min_x}
@@ -243,11 +255,22 @@ avgObjSize=$((totalSize / num_objects))
 partitionSize=$((blockSize / avgObjSize))
 
 echo "partitionsize=${partitionSize}" >> ${TEMP_CFG_FILE}
-INPUT_MBB_FILE=mbbnormfile
 
-PARTITION_FILE=partfile
+# Copy the config file into HDFS
+hdfs dfs -put ${TEMP_CFG_FILE} ${prefixpath}/${SATO_CONFIG_FILE_NAME}
+rm -f ${TEMP_CFG_FILE}
 
-hdfs dfs -cat ${prefixpath}/mbbnorm/* > ${INPUT_MBB_FILE}
+# INPUT_MBB_FILE=mbbnormfile
+
+INPUT_MBB_FILE="$(mktemp)"
+
+#PARTITION_FILE=partfile
+
+PARTITION_FILE="$(mktemp)"
+
+hdfs dfs -cat "${OUTPUT_4}/*" > "${INPUT_MBB_FILE}"
+
+echo "Start partitioning"
 
 # Partition data
 if [ "$method" == "fg" ]; then
@@ -258,8 +281,20 @@ if [ "$method" == "bsp" ]; then
    ../step_tear/bsp/serial/bsp -b {max_y} ${partition_size} -i ${INPUT_MBB_FILE} > ${PARTITION_FILE}
 fi
 
+echo "Done partitioning"
+
 # Remove temporary files
+
 rm ${INPUT_MBB_FILE}
+
+PARTITION_FILE_DENORM=partfiledenorm
+# Denormalize the MBB file and copy them to HDFS
+python ../step_tear/denormalize.py ${min_x} ${min_y} ${max_x} ${max_y}  < ${PARTITION_FILE} > ${PARTITION_FILE_DENORM}
+# Copy the partition region mbb file onto HDFS
+rm ${PARTITION_FILE}
+cp ${PARTITION_FILE_DENORM} ${SATO_INDEX_FILE_NAME}
+hdfs dfs -put ${PARTITION_FILE_DENORM} ${prefixpath}/${SATO_INDEX_FILE_NAME}
+
 
 INPUT_5=${OUTPUT_1}
 OUTPUT_5=${prefixpath}/data
@@ -272,22 +307,15 @@ hdfs dfs -rm -f -r ${OUTPUT_5}
 
 echo "Mapping data to create physical partitions"
 #Map the data back to its partition
-hadoop jar ${HJAR} -libjars ../libjar/customLibs.jar -outputformat com.custom.CustomMultiOutputFormat  -input ${INPUT_1} -output ${OUTPUT_5} -file ${MAPPER_5_PATH} -file ${REDUCER_5_PATH} -file ${PARTITION_FILE}  -mapper "${MAPPER_5} ${min_x} ${min_y} ${max_x} ${max_y} ${geomid}  ${PARTITION_FILE}" -reducer "${REDUCER_5} cat" -cmdenv LD_LIBRARY_PATH=${LD_CONFIG_PATH} -numReduceTasks 1
+hadoop jar ${HJAR} -libjars ../libjar/customLibs.jar -outputformat com.custom.CustomMultiOutputFormat  -input ${INPUT_1} -output ${OUTPUT_5} -file ${MAPPER_5_PATH} -file ${REDUCER_5_PATH} -file ${SATO_INDEX_FILE_NAME}  -mapper "${MAPPER_5} ${geomid} ${SATO_INDEX_FILE_NAME}" -reducer "${REDUCER_5} cat" -cmdenv LD_LIBRARY_PATH=${LD_CONFIG_PATH} -numReduceTasks 1
 
 if [  $? -ne 0 ]; then
    echo "Mapping data back to its partition has failed!"
-   exit 1
 fi
 
+rm -f ${SATO_INDEX_FILE_NAME}
 
-# Denormalize the MBB file and copy them to HDFS
-python ../step_tear/denormalize.py ${PARTITION_FILE} ${PARTITION_FILE}.denorm
-# Copy the partition region mbb file onto HDFS
-hdfs dfs -put ${PARTITION_FILE}.denorm ${prefixpath}/${PARTITION_FILE}
-
-# Copy the config file into HDFS
-hdfs dfs -put ${TEMP_CFG_FILE} ${prefixpath}/
-
+rm -f ${PARTITION_FILE_DENORM}
 #TEMP_FILE_MERGE=/tmp/satomerge
 # Merge small files together
 #cat "${PARTITION_FILE}" | cut -f1 | { while read line

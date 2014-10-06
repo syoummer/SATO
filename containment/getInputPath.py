@@ -17,10 +17,9 @@ def intersect(min_x, min_y, max_x, max_y,
                min_y > max_y2 or max_y < min_y2)
 
 def main():
-    #if (len(sys.argv) != 6):
-    #    print("Not enough arguments. Usage: " + sys.argv[0] + " min_x min_y max_x\
-    #                    max_y hdfs_prefix")
-    #    sys.exit(1)
+    if (len(sys.argv) != 6):
+        print("Not enough arguments. Usage: " + sys.argv[0] + " min_x min_y max_x max_y hdfs_prefix")
+        sys.exit(1)
         
  
     w_min_x = float(sys.argv[1])
@@ -45,7 +44,8 @@ def main():
         fileName = prefix + sp[0]
 
         if intersect(minx, miny, maxx, maxy, w_min_x, w_min_y, w_max_x, w_max_y):
-            str += " -input " + fileName + " "
+            print(fileName)
+		#str += " -input " + fileName + " "
         #str.append(" -input ").append(fileName)
     
     sys.stdout.write(str)

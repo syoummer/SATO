@@ -152,24 +152,23 @@ vector<string> parse(string & line) {
     return tokens;
 }
 
-void genTiles(double glominx, double glominy, double glomaxx, double  glomaxy) {
+void genTiles() {
     vector<Geometry*> tiles;
     string input_line2;
+    stringstream ss;
 
     vector<string> fields;
     double min_x, min_y, max_x, max_y;
-    double span_x = glomaxx - glominx;
-    double span_y = glomaxy - glominy;
     id_type id;
 //    cerr << glominx << TAB << glominy << TAB << glomaxx << TAB << glomaxy << endl;
 
     std::ifstream skewFile(filename);
     while (std::getline(skewFile, input_line2)) {
 	fields = parse(input_line2);
-        min_x = std::stod(fields[1]) * span_x + glominx;
-        min_y = std::stod(fields[2]) * span_y + glominy;
-        max_x = std::stod(fields[3]) * span_x + glominx;
-        max_y = std::stod(fields[4]) * span_y + glominy;
+        min_x = std::stod(fields[1]);
+        min_y = std::stod(fields[2]);
+        max_x = std::stod(fields[3]);
+        max_y = std::stod(fields[4]);
 
 	ss << shapebegin << min_x << SPACE << min_y << COMMA
 	 << min_x << SPACE << max_y << COMMA
@@ -229,16 +228,14 @@ bool buildIndex() {
 
 int main(int argc, char **argv) {
 
-  double min_x = strtod(argv[1], NULL);
-  double min_y = strtod(argv[2], NULL);
-  double max_x = strtod(argv[3], NULL);
-  double max_y = strtod(argv[4], NULL);
-
-
+  if (argc != 3) {
+     cerr << "ERROR: Not enough arguments. Usage: " << argv[0]
+            << " [geomd_id] [partition_file]" << endl;
+     return -1;
+  }
   //int uid_idx  = args_info.uid_arg;
-  GEOM_IDX = atoi(argv[5]) - 1;
-  filename = argv[6];
-
+  GEOM_IDX = atoi(argv[1]) - 1;
+  filename = argv[2];
 
   /* 
      cerr << "min_x "<< min_x << endl; 
@@ -262,7 +259,7 @@ int main(int argc, char **argv) {
   id_type id = 0; 
   Geometry* geom ; 
 
-  genTiles(min_x, min_y, max_x, max_y);
+  genTiles();
 
   bool ret = buildIndex();
   if (ret == false) {

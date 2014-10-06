@@ -95,7 +95,7 @@ HJAR=${HADOOP_STREAMING_PATH}/hadoop-streaming.jar
 source ../sato.cfg
 LD_CONFIG_PATH=${LD_LIBRARY_PATH}:${SATO_LIB_PATH}
 
-PARTITION_FILE=partfile
+PARTITION_FILE=partfile.idx
 
 # The location of the index file
 index_location=$5
@@ -117,12 +117,39 @@ if [ ! "${destination}" ]; then
      exit 1
 fi
 
-# We can use mktemp as well
 rm -f ${PARTITION_FILE}
-hdfs dfs -get ${datapath}/${PARTITION_FILE} ./
-input_path=`( ../containment/getInputPath.py ${min_x} ${min_y} ${max_x} ${max_y} ${datapath}/data/ < "${PARTITION_FILE}" )`
+
+TMP_PARTITION_FILE=$(mktemp)
+TMP_INPUT_PATH=$(mktemp)
+
+echo "Creating "${TMP_PARTITION_FILE}
+echo "Creating "${TMP_INPUT_PATH}
+
+rm ${TMP_PARTITION_FILE}
+hdfs dfs -get ${datapath}/${PARTITION_FILE} ${TMP_PARTITION_FILE}
+
+###
+### Need a check for valid data + cfg file in the HDFS path
+###
+
+../containment/getInputPath.py ${min_x} ${min_y} ${max_x} ${max_y} ${datapath}/data/ < ${TMP_PARTITION_FILE} > ${TMP_INPUT_PATH}
+
+rm ${TMP_PARTITION_FILE}
+num_input_files=`(wc -l "${TMP_INPUT_PATH}" | cut -d" " -f1)`
+
+echo "Number of input paths: "${num_input_files}
+
+if [ ${num_input_files} -eq 0 ]; then
+   echo "No object lies within the selected query window"
+   exit 0 
+fi
+
+
+# input_path=`( ../containment/getInputPath.py ${min_x} ${min_y} ${max_x} ${max_y} ${datapath}/data/ < "${PARTITION_FILE}" )`
 
 #../containment/getInputPath.py ${min_x} ${min_y} ${max_x} ${max_y} ${datapath} < "${PARTITION_FILE}"
+
+
 
 # Load the configuration file to determine the geometry field
 DATA_CFG_FILE=data.cfg
@@ -130,14 +157,37 @@ rm -f ${DATA_CFG_FILE}
 hdfs dfs -get ${datapath}/${DATA_CFG_FILE} ./
 source ${DATA_CFG_FILE}
 
-echo $input_path
+echo ${TMP_INPUT_PATH}
 
 MAPPER_1=containment
 MAPPER_1_PATH=../joiner/containment
 OUTPUT_1=${destination}
+
+# Removing the destination directory
 hdfs dfs -rm -f -r ${destination}
 
-echo "Querying: $min_x $min_y $max_x $max_y"
-echo ${input_path}
-hadoop jar ${HJAR} ${input_path} -output ${destination} -file ${MAPPER_1_PATH} -mapper "${MAPPER_1} ${min_x} ${min_y} ${max_x} ${max_y} ${geomid}" -reducer None --cmdenv LD_LIBRARY_PATH=${LD_CONFIG_PATH} -numReduceTasks 0
-#echo ${input_path}
+
+echo "Intersecting partitions found"
+# There are at least 1 partition/block intersecting with the window query
+if [ "${num_input_files}" -eq "1" ] ; then
+   echo "Reading only 1 partition. No MapReduce job will be invoked."
+   file_name=`(cat "${TMP_INPUT_PATH}")`
+
+   hdfs dfs -mkdir -p ${destination}
+   hdfs dfs -cat ${file_name}/* |  ${MAPPER_1_PATH} ${min_x} ${min_y} ${max_x} ${max_y} ${geomid} > ${TMP_INPUT_PATH}
+   hdfs dfs -put ${TMP_INPUT_PATH} ${OUTPUT_1}/part-00000
+else
+   echo "Invoking MapReduce."
+   echo "Querying: $min_x $min_y $max_x $max_y"
+   input_path=" "
+   while read -r line
+      do
+        input_path=${input_path}"-input "${line}" "
+   done < ${TMP_INPUT_PATH}
+   echo "Input path: "${input_path}
+   hadoop jar ${HJAR} ${input_path} -output ${destination} -file ${MAPPER_1_PATH} -mapper "${MAPPER_1} ${min_x} ${min_y} ${max_x} ${max_y} ${geomid}" -reducer None --cmdenv LD_LIBRARY_PATH=${LD_CONFIG_PATH} -numReduceTasks 0
+fi
+
+rm ${TMP_INPUT_PATH}
+echo "Done. Results are available at ${OUTPUT_1}"
+
