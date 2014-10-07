@@ -89,7 +89,7 @@ make
 
 #cd ../step_tear/fg/serial
 # make
-cd ../../bsp/serial
+cd ../step_tear/bsp/serial
 
 make
 
