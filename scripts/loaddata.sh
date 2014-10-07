@@ -7,7 +7,7 @@ usage(){
   -p HDFS_PATH_PREFIX, --prefix=HDFS_PATH_PREFIX \t directory path to the include locations \n \
   -g GEOM_ID, --geomid=GEOM_ID \t The field (position) of the geometry field (starts from 1) \n \
   -s SEPARATOR, --separator=SEPARATOR \t OPTIONAL - The seperator/delimiter used to separate fields in the original dataset. The default value is tab. \
-  -r SAMPLING_RATIO, --ratio=SAMPLING_RATIO \t OPTIONAL - The sampling ratio we will use to partition the data. Default value is 1.0.\
+  -r SAMPLING_RATIO, --ratio=SAMPLING_RATIO \t OPTIONAL - The sampling ratio to be used to partition data. Default value is 1.0.\
   -m PARTITION_METHOD, --method=PARTITION_METHOD \t OPTIONAL - The partitioning method. The default method is fixed grid partitioning. Options include: fg (fixed grid), bsp (binary space partitioning), sfc (space filling curve).
 "
  # -i OBJECT_ID, --obj_id=OBJECT_ID \t The field (position) of the object ID \n \
@@ -211,7 +211,7 @@ max_y=`(cat ${TEMP_FILE_NAME} | cut -f4)`
 num_objects=`(cat ${TEMP_FILE_NAME} | cut -f5)`
 
 #rm -f ${TEMP_FILE_NAME}
-
+hdfs dfs -rm -f -r ${OUTPUT_3}
 
 TEMP_CFG_FILE=${TEMP_FILE_NAME}
 # SATO_DATA_CFG=data.cfg
@@ -236,15 +236,18 @@ OUTPUT_4=${prefixpath}/mbbnorm
 MAPPER_4=mbbnorm.py
 MAPPER_4_PATH=../step_analyze/mbbnorm.py
 
-hdfs dfs -rm -f -r ${OUTPUT_4}
+if ! [ "$method" == "fg" ]; then
+     hdfs dfs -rm -f -r ${OUTPUT_4}
 
-echo "Normalizing MBBs"
-hadoop jar ${HJAR} -input ${INPUT_4} -output ${OUTPUT_4} -file ${MAPPER_4_PATH} -mapper "${MAPPER_4} ${min_x} ${min_y} ${max_x} ${max_y}" -reducer None -numReduceTasks 0
-
-if [  $? -ne 0 ]; then
-   echo "Normalizing MBB has failed!"
-   exit 1
+     echo "Normalizing MBBs"
+     hadoop jar ${HJAR} -input ${INPUT_4} -output ${OUTPUT_4} -file ${MAPPER_4_PATH} -mapper "${MAPPER_4} ${min_x} ${min_y} ${max_x} ${max_y}" -reducer None -numReduceTasks 0
+     if [  $? -ne 0 ]; then
+          echo "Normalizing MBB has failed!"
+          exit 1
+     fi
 fi
+
+
 
 # Determine the optimal bucket count
 totalSize=`(hdfs dfs -du -s "${datapath}" | cut -d\  -f1)`
@@ -286,6 +289,8 @@ echo "Done partitioning"
 # Remove temporary files
 
 rm ${INPUT_MBB_FILE}
+
+hdfs dfs -rm -f -r ${OUTPUT_4}
 
 PARTITION_FILE_DENORM=partfiledenorm
 # Denormalize the MBB file and copy them to HDFS

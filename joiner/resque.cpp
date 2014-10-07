@@ -6,6 +6,12 @@ map<int, std::vector<string> > rawdata;
 ISpatialIndex * spidx = NULL;
 IStorageManager * storage = NULL;
 
+bool appendstats = true;
+double area1 = -1;
+double area2 = -1;
+double union_area = -1;
+double intersect_area = -1;
+
 struct query_op { 
   int JOIN_PREDICATE;
   int shape_idx_1;
@@ -180,11 +186,22 @@ bool join_with_predicate(const Geometry * geom1 , const Geometry * geom2,
   BufferOp * buffer_op2 = NULL ;
   Geometry* geom_buffer1 = NULL;
   Geometry* geom_buffer2 = NULL;
- 
+  Geometry* geomUni = NULL;
+  Geometry* geomIntersect = NULL; 
+
+
   switch (jp){
 
     case ST_INTERSECTS:
       flag = env1->intersects(env2) && geom1->intersects(geom2);
+      if (flag && appendstats) {
+             area1 = geom1->getArea();
+             area2 = geom2->getArea();
+             geomUni = geom1->Union(geom2);
+             union_area = geomUni->getArea();
+             geomIntersect = geom1->intersection(geom2);
+             intersect_area = geomIntersect->getArea();
+      }
       break;
 
     case ST_TOUCHES:
@@ -369,7 +386,12 @@ void ReportResult( int i , int j)
       cout << rawdata[SID_1][i] << SEP << rawdata[SID_1][j] << endl;
       break;
     case 2:
-      cout << rawdata[SID_1][i] << SEP << rawdata[SID_2][j] << endl; 
+      cout << rawdata[SID_1][i] << SEP << rawdata[SID_2][j]; 
+      if (appendstats) {
+          cout << SEP << area1 << TAB << area2 << TAB << union_area 
+              << TAB << intersect_area << TAB << intersect_area / union_area;
+      }
+      cout << endl;
       break;
     default:
       return ;
@@ -464,11 +486,12 @@ bool extractParams(int argc, char** argv ){
     {"shpidx2",  required_argument, 0, 'j'},
     {"predicate",  required_argument, 0, 'p'},
     {"fields",     required_argument, 0, 'f'},
+    {"stats",     required_argument, 0, 's'},
     {0, 0, 0, 0}
   };
 
   int c;
-  while ((c = getopt_long (argc, argv, "p:i:j:d:f:",long_options, &option_index)) != -1){
+  while ((c = getopt_long (argc, argv, "p:i:j:d:f:s:",long_options, &option_index)) != -1){
     switch (c)
     {
       case 0:
@@ -505,6 +528,9 @@ bool extractParams(int argc, char** argv ){
         //printf ("projection fields:  `%s'\n", optarg);
         break;
 
+      case 's':
+        appendstats = (strcmp(optarg, "true") == 0);
+        break;
       case '?':
         return false;
         /* getopt_long already printed an error message. */

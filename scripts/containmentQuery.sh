@@ -169,7 +169,7 @@ hdfs dfs -rm -f -r ${destination}
 
 echo "Intersecting partitions found"
 # There are at least 1 partition/block intersecting with the window query
-if [ "${num_input_files}" -eq "1" ] ; then
+if [[ ${num_input_files} == 1 ]] ; then
    echo "Reading only 1 partition. No MapReduce job will be invoked."
    file_name=`(cat "${TMP_INPUT_PATH}")`
 

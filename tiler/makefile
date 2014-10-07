@@ -26,7 +26,7 @@ else
 endif
 
 
-all: hgtiler mbbextractor partitionMapper
+all: hgtiler mbbextractor partitionMapper partitionMapperJoin
 
 debug: CXX += -DDEBUG -g
 debug: CC += -DDEBUG -g
@@ -45,6 +45,9 @@ mbbextractor: cmd.o mbbextractor.cpp hadoopgis.h tokenizer.h
 
 partitionMapper: cmd.o partitionMapper.cpp hadoopgis.h tokenizer.h
 	$(CC) -std=c++0x partitionMapper.cpp cmd.o $(CFLAGS) $(LDFLAGS) $(OPTFLAGS) -o partitionMapper
+
+partitionMapperJoin: cmd.o partitionMapperJoin.cpp hadoopgis.h tokenizer.h
+	$(CC) -std=c++0x partitionMapperJoin.cpp cmd.o $(CFLAGS) $(LDFLAGS) $(OPTFLAGS) -o partitionMapperJoin 
 
 clean:
 	@rm -f *.o hgtiler mbbextractor

@@ -41,11 +41,11 @@ int main(int argc, char **argv) {
   double max_y;
 
   if (argc < 6) {
-	cerr << "Usage: "<< argv[0] << " [min_x] [min_y] [max_x] [max_y]" << endl;
+	cerr << "Usage: "<< argv[0] << " [min_x] [min_y] [max_x] [max_y] [geomid]" << endl;
         return -1;
   }
 
-  GEOM_IDX = atoi(argv[5]) + 1 ; // -1 + 2 (partition id + legacy field)
+  GEOM_IDX = atoi(argv[5])  ; // +1 field partition ID
   if (GEOM_IDX < 1) {
     cerr << "Invalid arguments for field indices" << endl;
     return -1;

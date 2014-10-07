@@ -90,15 +90,17 @@ make
 #cd ../step_tear/fg/serial
 # make
 cd ../../bsp/serial
+
 make
-cd ../../rplus/serial
-make
-cd ../../rtree/serial
-make
-cd ../../sfc/serial
-make
-cd ../../strip/serial
-make
+
+#cd ../../rplus/serial
+#make
+#cd ../../rtree/serial
+#make
+#cd ../../sfc/serial
+#make
+#cd ../../strip/serial
+#make
 
 # Return to the install directory
 cd ${SCRIPT_DIR} 

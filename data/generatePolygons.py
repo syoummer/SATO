@@ -16,7 +16,7 @@ import random
 # 
 
 def getRandCoord(min, max, obj_size):
-    return min + (max - min) * (random.random() * 0.5 + 0.5)
+    return min + (max - min) * (random.random())
 
 def roundNum(num):
     return str(round(num, 4))
