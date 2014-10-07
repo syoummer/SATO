@@ -227,10 +227,10 @@ OUTPUT_1=${TEMP_DIR}
 MAPPER_1=mbbnorm.py
 MAPPER_1_PATH=../step_analyze/mbbnorm.py
 
-#hdfs dfs -rm -f -r ${OUTPUT_1}
+hdfs dfs -rm -f -r ${OUTPUT_1}
 
 echo "Normalizing MBBs"
-#hadoop jar ${HJAR} -input ${INPUT_1A} -input ${INPUT_1B} -output ${OUTPUT_1} -file ${MAPPER_1_PATH} -mapper "${MAPPER_1} ${min_x} ${min_y} ${max_x} ${max_y}" -reducer None -numReduceTasks 0
+hadoop jar ${HJAR} -input ${INPUT_1A} -input ${INPUT_1B} -output ${OUTPUT_1} -file ${MAPPER_1_PATH} -mapper "${MAPPER_1} ${min_x} ${min_y} ${max_x} ${max_y}" -reducer None -numReduceTasks 0
 
 if [  $? -ne 0 ]; then
    echo "Normalizing MBB has failed!"
@@ -242,11 +242,11 @@ partitionSize=5000
 
 echo "partitionsize=${partitionSize}"
 
- INPUT_MBB_FILE=mbbnormfile
-#INPUT_MBB_FILE="$(mktemp)"
+#INPUT_MBB_FILE=mbbnormfile
+INPUT_MBB_FILE="$(mktemp)"
 
-PARTITION_FILE=partfile
-#PARTITION_FILE="$(mktemp)"
+#PARTITION_FILE=partfile
+PARTITION_FILE="$(mktemp)"
 
 hdfs dfs -cat "${OUTPUT_1}/*" > ${INPUT_MBB_FILE}
 
@@ -268,15 +268,13 @@ rm ${INPUT_MBB_FILE}
 
 PARTITION_FILE_DENORM=partfiledenorm
 # Denormalize the MBB file and copy them to HDFS
-#python ../step_tear/denormalize.py ${min_x} ${min_y} ${max_x} ${max_y}  < ${PARTITION_FILE} > ${PARTITION_FILE_DENORM}
+python ../step_tear/denormalize.py ${min_x} ${min_y} ${max_x} ${max_y}  < ${PARTITION_FILE} > ${PARTITION_FILE_DENORM}
 
 
 # Copy the partition region mbb file onto HDFS
-#rm ${PARTITION_FILE}
-#cp ${PARTITION_FILE_DENORM} ${SATO_INDEX_FILE_NAME}
+rm ${PARTITION_FILE}
+cp ${PARTITION_FILE_DENORM} ${SATO_INDEX_FILE_NAME}
 hdfs dfs -put ${PARTITION_FILE_DENORM} ${OUTPUT_1}/${SATO_INDEX_FILE_NAME}
-
-#rm ${PARTITION_FILE_DENORM}
 
 INPUT_2A=${prefixpath1}'/data/*/*'
 INPUT_2B=${prefixpath2}'/data/*/*'
@@ -293,7 +291,7 @@ predicate="st_"${predicate}
 
 
 echo "Mapping data to create physical partitions"
-#echo "${MAPPER_2} ${geomid1} ${geomid2} ${SATO_INDEX_FILE_NAME} ${prefixpath1} ${prefixpath2}"
+echo "${MAPPER_2} ${geomid1} ${geomid2} ${SATO_INDEX_FILE_NAME} ${prefixpath1} ${prefixpath2}"
 echo "${REDUCER_2} -p ${predicate} -i ${geomid1} -j ${geomid2} -s ${statistics}"
 
 
@@ -304,17 +302,5 @@ if [  $? -ne 0 ]; then
    echo "Mapping data back to its partition has failed!"
 fi
 
-exit 0
 rm -f ${SATO_INDEX_FILE_NAME}
-
 rm -f ${PARTITION_FILE_DENORM}
-#TEMP_FILE_MERGE=/tmp/satomerge
-# Merge small files together
-#cat "${PARTITION_FILE}" | cut -f1 | { while read line
-#do echo $line;
-# hdfs dfs -getmerge ${prefixpath}/data/${line} ${TEMP_FILE_MERGE};
-# hdfs dfs -rm -f -r  ${prefixpath}/data/${line};
-# hdfs dfs -put ${TEMP_FILE_MERGE} ${prefixpath}/data/${line};
-# rm ${TEMP_FILE_MERGE};
-#done 
-#}
