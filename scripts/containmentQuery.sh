@@ -5,10 +5,10 @@ usage(){
   echo -e "containmentQuery.sh [options]\n \
   -p HDFS_PATH_PREFIX, --prefix=HDFS_PATH_PREFIX \t HDFS prefix to the data set (used in the loaded step) \n \
   -d DESTINATION_RESULT_PATH, --destination=DESTINATION_RESULT_PATH \t The destination for the result data (HDFS path) \n \
-  -i MIN_X, --min_x=MIN_X \t The smallest x-coordinate of the space \n \
-  -j MIN_Y, --min_y=MIN_Y \t The smallest y-coordinate of the space \n \
-  -k MAX_X, --max_x=MAX_X \t The largest x-coordinate of the space \n \
-  -l MAX_Y, --max_y=MAX_Y \t The largest y-coordinate of the space \n \
+  -i MIN_X, --min_x=MIN_X \t The smallest x-coordinate of the query window \n \
+  -j MIN_Y, --min_y=MIN_Y \t The smallest y-coordinate of the query window \n \
+  -k MAX_X, --max_x=MAX_X \t The largest x-coordinate of the query window \n \
+  -l MAX_Y, --max_y=MAX_Y \t The largest y-coordinate of the query window \n \
 "
  # -i OBJECT_ID, --obj_id=OBJECT_ID \t The field (position) of the object ID \n \
   exit 1

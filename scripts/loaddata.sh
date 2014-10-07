@@ -6,9 +6,9 @@ usage(){
   -d PATH_TO_DATA, --data=PATH_TO_DATA \t The HDFS path to the raw data \n \
   -p HDFS_PATH_PREFIX, --prefix=HDFS_PATH_PREFIX \t directory path to the include locations \n \
   -g GEOM_ID, --geomid=GEOM_ID \t The field (position) of the geometry field (starts from 1) \n \
-  -s SEPARATOR, --separator=SEPARATOR \t OPTIONAL - The seperator/delimiter used to separate fields in the original dataset. The default value is tab. \
-  -r SAMPLING_RATIO, --ratio=SAMPLING_RATIO \t OPTIONAL - The sampling ratio to be used to partition data. Default value is 1.0.\
-  -m PARTITION_METHOD, --method=PARTITION_METHOD \t OPTIONAL - The partitioning method. The default method is fixed grid partitioning. Options include: fg (fixed grid), bsp (binary space partitioning), sfc (space filling curve).
+  -s SEPARATOR, --separator=SEPARATOR \t OPTIONAL - The seperator/delimiter used to separate fields in the original dataset. The default value is tab. \n \
+  -r SAMPLING_RATIO, --ratio=SAMPLING_RATIO \t OPTIONAL - The sampling ratio to be used to partition data. Default value is 1.0. \n \
+  -m PARTITION_METHOD, --method=PARTITION_METHOD \t OPTIONAL - The partitioning method. The default method is fixed grid partitioning. Options include: fg (fixed grid), bsp (binary space partitioning), sfc (space filling curve). \n \
 "
  # -i OBJECT_ID, --obj_id=OBJECT_ID \t The field (position) of the object ID \n \
   exit 1

@@ -6,12 +6,12 @@ usage(){
   -a PATH_TO_DATA_1, --inputa=PATH_TO_DATA_1 \t The HDFS prefix path to the loaded data set 1 \n \
   -b PATH_TO_DATA_2, --inputb=PATH_TO_DATA_2 \t The HDFS prefix path to the loaded data set 2 \n \
   -p PREDICATE, --predicate=join predicate \t The join predicate [contains | intersects | touches | crosses | within | dwithin] \n \
-  -q DISTANCE, --qdistance=DISTANCE \t
+  -q DISTANCE, --qdistance=DISTANCE \t Distance (for dwithin predicate) \n
   -d DESTINATION_PATH, --destination=DESTINATION_PATH \t The HDFS prefix path to store the query result \n \
   -n NUMBER_REDUCERS, --num_reducers=NUM_REDUCERS \t Number of reducers to be used \n \
-  -s TRUE_OR_FALSE, --statistics=TRUE_OR_FALSE \t Appending additional spatial join statistics to joined pairs: [true | false].\
+  -s TRUE_OR_FALSE, --statistics=TRUE_OR_FALSE \t Appending additional spatial join statistics to joined pairs: [true | false]. \n \
   -m PARTITION_METHOD, --method=PARTITION_METHOD \t OPTIONAL - The partitioning method. The default method is fixed grid partitioning. [ fg | bsp ] \n \
-   -r SAMPLING_RATIO, --ratio=SAMPLING_RATIO \t OPTIONAL - The sampling ratio for partitioning the data. Default value is 1.0.\
+   -r SAMPLING_RATIO, --ratio=SAMPLING_RATIO \t OPTIONAL - The sampling ratio for partitioning the data. Default value is 1.0.\n \
 "
  # -i OBJECT_ID, --obj_id=OBJECT_ID \t The field (position) of the object ID \n \
   exit 1
