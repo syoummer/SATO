@@ -3,7 +3,7 @@
 # Configuring lib and include directories
 usage(){
   echo -e "containmentQuery.sh [options]\n \
-  -p HDFS_PATH_PREFIX, --prefix=HDFS_PATH_PREFIX \t directory path to the include locations \n \
+  -p HDFS_PATH_PREFIX, --prefix=HDFS_PATH_PREFIX \t HDFS prefix to the data set (used in the loaded step) \n \
   -d DESTINATION_RESULT_PATH, --destination=DESTINATION_RESULT_PATH \t The destination for the result data (HDFS path) \n \
   -i MIN_X, --min_x=MIN_X \t The smallest x-coordinate of the space \n \
   -j MIN_Y, --min_y=MIN_Y \t The smallest y-coordinate of the space \n \
@@ -95,10 +95,8 @@ HJAR=${HADOOP_STREAMING_PATH}/hadoop-streaming.jar
 source ../sato.cfg
 LD_CONFIG_PATH=${LD_LIBRARY_PATH}:${SATO_LIB_PATH}
 
-PARTITION_FILE=partfile.idx
-
 # The location of the index file
-index_location=$5
+PARTITION_FILE=partfile.idx
 
 PATH_RETRIEVER=../containment/getInputPath.py
 
