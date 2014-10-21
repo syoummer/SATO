@@ -11,7 +11,7 @@ import math
 # The output is the normalized MBR of regions for partitions
 def main():
     if len(sys.argv) != 7:
-        sys.exit("Not enough arguments (6)")
+        sys.exit("Not enough arguments: [min_x] [min_y] [max_x] [max_y] [bucket_size] [num_objects_total]")
 
     # Dimensions of the universe/space
     min_x = float(sys.argv[1])

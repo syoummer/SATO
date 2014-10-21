@@ -86,7 +86,7 @@ int main(int ac, char** av) {
   //print tile memory and cleanup tiles space 
   for (vector<RTree::Data*>::iterator it = tiles.begin() ; it != tiles.end(); ++it) 
   {
-    cout << (*it)->m_id << " " << (*it)->m_region <<endl;
+    cerr << (*it)->m_id << " " << (*it)->m_region <<endl;
     delete *it;
   }
   tiles.clear();
@@ -130,6 +130,8 @@ void processInput() {
       high[0] = tmp->right;
       high[1] = tmp->top;
       Region r(low, high, 2);
+      cout << tid << TAB << low[0] << TAB << low[1] << TAB
+              << high[0] << TAB << high[1] << endl;
       tiles.push_back(new RTree::Data(0, 0 , r, tid++));
     }
   }

@@ -114,6 +114,8 @@ else
 fi
 
 LD_CONFIG_PATH=${LD_LIBRARY_PATH}:${SATO_LIB_PATH}
+export LD_LIBRARY_PATH=${LD_CONFIG_PATH}
+
 if [ ! "$datapath" ]; then
   echo "ERROR: Missing path to the data. See --help" >&2
   exit 1
@@ -263,15 +265,15 @@ echo "partitionsize=${partitionSize}" >> ${TEMP_CFG_FILE}
 hdfs dfs -put ${TEMP_CFG_FILE} ${prefixpath}/${SATO_CONFIG_FILE_NAME}
 rm -f ${TEMP_CFG_FILE}
 
-# INPUT_MBB_FILE=mbbnormfile
-
 INPUT_MBB_FILE="$(mktemp)"
+#INPUT_MBB_FILE=mbbnormfile
 
 #PARTITION_FILE=partfile
 
 PARTITION_FILE="$(mktemp)"
 
 hdfs dfs -cat "${OUTPUT_4}/*" > "${INPUT_MBB_FILE}"
+
 
 echo "Start partitioning"
 
@@ -281,7 +283,7 @@ if [ "$method" == "fg" ]; then
 fi
 
 if [ "$method" == "bsp" ]; then
-   ../step_tear/bsp/serial/bsp -b {max_y} ${partition_size} -i ${INPUT_MBB_FILE} > ${PARTITION_FILE}
+   ../step_tear/bsp/serial/bsp -b ${partitionSize} -i ${INPUT_MBB_FILE} > ${PARTITION_FILE}
 fi
 
 echo "Done partitioning"
@@ -321,6 +323,9 @@ fi
 rm -f ${SATO_INDEX_FILE_NAME}
 
 rm -f ${PARTITION_FILE_DENORM}
+
+echo "Data loaded into ${prefixpath}"
+
 #TEMP_FILE_MERGE=/tmp/satomerge
 # Merge small files together
 #cat "${PARTITION_FILE}" | cut -f1 | { while read line

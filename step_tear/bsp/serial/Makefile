@@ -14,7 +14,7 @@ ifeq ($(UNAME), Darwin)
     CXX = g++ -arch x86_64
 else 
     CC = gcc 
-    CXX = g++44
+    CXX = g++
 endif
 
 
@@ -27,11 +27,12 @@ debug: CXX += -DDEBUG -g
 debug: CC += -DDEBUG -g
 debug: all 
 
+bsp.o: BinarySplitNode.cpp commonspatial.h
+	$(CXX) -c $< $(CFLAGS) $(LDFLAGS) -o $@
+
 bsp: main.cpp commonspatial.h $(Obj)
 	$(CXX) $^ $(CFLAGS) $(LDFLAGS) -o $@
 
-bsp.o: BinarySplitNode.cpp commonspatial.h
-	$(CXX) -c $< $(CFLAGS) $(LDFLAGS) -o $@
 
 clean:
 	@rm -f $(TARGET) $(Obj)

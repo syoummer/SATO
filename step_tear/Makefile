@@ -1,9 +1,14 @@
-spatial=/home/aaji/softs
-
 UNAME		= $(shell uname)
-OPTFLAGS	= -O2 -Wall -std=c++0x 
+OPTFLAGS	= -O2 -Wall -std=c++0x
 INCBASE		= -I.
-LIBBASE		= -lspatialindex
+LIBBASE		= -lspatialindex -lboost_program_options
+
+INCFLAGS = -I ${SATO_INC_PATH}
+LIBS = -L ${SATO_LIB_PATH}
+
+CFLAGS      = $(OPTFLAGS) $(INCBASE) $(INCFLAGS) 
+LDFLAGS     = $(LIBBASE) $(LIBS)
+
 
 ifneq (,$(findstring emory,$(shell uname -a)))
     INCFLAGS = -I$(spatial)/include
@@ -25,7 +30,7 @@ ifeq ($(UNAME), Darwin)
     # CXX = clang++
 else 
     CC = gcc
-    CXX = g++44
+    CXX = g++
 endif
 
 TARGET = fixedgridPartition stripGroupPartition rplusGroupPartition hilbertPartition genRtreeIndex genPartitionFromIndex rquery

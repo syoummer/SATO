@@ -14,7 +14,7 @@ ifeq ($(UNAME), Darwin)
     CXX = g++ -arch x86_64
 else 
     CC = gcc
-    CXX = g++44
+    CXX = g++
 endif
 
 TARGET = slc

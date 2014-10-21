@@ -94,13 +94,14 @@ HJAR=${HADOOP_STREAMING_PATH}/hadoop-streaming.jar
 # Load the SATO configuration file
 source ../sato.cfg
 LD_CONFIG_PATH=${LD_LIBRARY_PATH}:${SATO_LIB_PATH}
+export LD_LIBRARY_PATH=${LD_CONFIG_PATH}
 
 # The location of the index file
 PARTITION_FILE=partfile.idx
 
 PATH_RETRIEVER=../containment/getInputPath.py
 
-if [ ! "${min_x}" ] && [! "${min_y}" ] && [! "${max_x}" ] && [! "${max_y}" ]; then
+if ! [ "${min_x}" ] && ! [ "${min_y}" ] && ! [ "${max_x}" ] && ! [ "${max_y}" ]; then
      echo "ERROR: Missing query window dimensions"
      exit 1
 fi

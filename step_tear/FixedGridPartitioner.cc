@@ -18,16 +18,16 @@ uint32_t genTiles(Region &universe, const uint32_t partition_size, const uint64_
 
   double min_x = universe.getLow(0);
   double min_y = universe.getLow(1);
-  string SPACE = " ";
+  string TAB= "\t";
   uint32_t tid = 0 ; 
   for (uint32_t i =0 ; i < LOOP ; i++)
   {
     for (uint32_t j =0 ; j< LOOP; j++)
     {
-      std::cout << tid << SPACE;
-      std::cout << min_x + i * width << SPACE 
-          << min_y+ j * height << SPACE 
-          << min_x + (i+1) * width << SPACE 
+      std::cout << tid << TAB;
+      std::cout << min_x + i * width << TAB
+          << min_y+ j * height << TAB
+          << min_x + (i+1) * width << TAB
           << min_y + (j+1) * height << std::endl;
       tid++;
     }

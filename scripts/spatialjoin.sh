@@ -6,13 +6,13 @@ usage(){
   -a PATH_TO_DATA_1, --inputa=PATH_TO_DATA_1 \t The HDFS prefix path to the loaded data set 1 \n \
   -b PATH_TO_DATA_2, --inputb=PATH_TO_DATA_2 \t The HDFS prefix path to the loaded data set 2 \n \
   -p PREDICATE, --predicate=join predicate \t The join predicate [contains | intersects | touches | crosses | within | dwithin] \n \
-  -q DISTANCE, --qdistance=DISTANCE \t Distance (for dwithin predicate) \n
-  -d DESTINATION_PATH, --destination=DESTINATION_PATH \t The HDFS prefix path to store the query result \n \
+  -q DISTANCE, --qdistance=DISTANCE \t Distance (for dwithin predicate) \n \
+  -d DESTINATION_PATH, --destination=DESTINATION_PATH\tThe HDFS prefix path to store the query result \n \
+  -f FIELDS_TO_OUTPUT, --fields=FIELDS_TO_OUTPUT \t The fields to be included in the outputs. The format is comma-separated for fields within 1 data set, and separated by color between datasets. E.g. --fields=1,3,4:2,5,9 \n \
   -n NUMBER_REDUCERS, --num_reducers=NUM_REDUCERS \t Number of reducers to be used \n \
   -s TRUE_OR_FALSE, --statistics=TRUE_OR_FALSE \t Appending additional spatial join statistics to joined pairs: [true | false]. \n \
   -m PARTITION_METHOD, --method=PARTITION_METHOD \t OPTIONAL - The partitioning method. The default method is fixed grid partitioning. [ fg | bsp ] \n \
-   -r SAMPLING_RATIO, --ratio=SAMPLING_RATIO \t OPTIONAL - The sampling ratio for partitioning the data. Default value is 1.0.\n \
-"
+   -r SAMPLING_RATIO, --ratio=SAMPLING_RATIO \t OPTIONAL - The sampling ratio for partitioning the data. Default value is 1.0."
  # -i OBJECT_ID, --obj_id=OBJECT_ID \t The field (position) of the object ID \n \
   exit 1
 }
@@ -137,6 +137,7 @@ else
 fi
 
 LD_CONFIG_PATH=${LD_LIBRARY_PATH}:${SATO_LIB_PATH}
+export LD_LIBRARY_PATH=${LD_CONFIG_PATH}
 
 if [ ! "${prefixpath1}" ] || [ ! "${prefixpath2}" ]; then
   echo "ERROR: Missing path to input data sets. See --help" >&2
@@ -147,9 +148,9 @@ if [ ! "${destination}" ]; then
   exit 1
 fi
 
-if [ ! "${predicate}" ]; then
-  echo "ERROR: Missing query predicate. See --help" >&2
-  exit 1
+if [ "${predicate}" != "intersects" ] && [ "${predicate}" != "touches" ] && [ "${predicate}" != "crosses" ] && [ "${predicate}" != "contains" ] && [ "${predicate}" != "adjacent" ] && [ "${predicate}" != "disjoint" ] && [ "${predicate}" != "equals" ] && [ "${predicate}" != "dwithin" ] && [ "${predicate}" != "within" ] && [ "${predicate}" != "overlaps" ]; then
+   echo "ERROR: Invalid predicate. See --help" >&2
+   exit 1
 fi
 
 if ! [[ ${num_reducers} -ge 1 ]]; then
@@ -161,7 +162,6 @@ if ! [ "${method}" == "fg" ] && ! [ "${method}" == "bsp" ] ; then
    echo "Invalid partitioning method"
    exit 1
 fi
-
 
 # Creating the path with the HDFS prefix
 hdfs dfs -mkdir -p ${destination}
@@ -271,14 +271,13 @@ PARTITION_FILE_DENORM=partfiledenorm
 python ../step_tear/denormalize.py ${min_x} ${min_y} ${max_x} ${max_y}  < ${PARTITION_FILE} > ${PARTITION_FILE_DENORM}
 
 
-# Copy the partition region mbb file onto HDFS
 rm ${PARTITION_FILE}
 cp ${PARTITION_FILE_DENORM} ${SATO_INDEX_FILE_NAME}
 hdfs dfs -put ${PARTITION_FILE_DENORM} ${OUTPUT_1}/${SATO_INDEX_FILE_NAME}
 
 INPUT_2A=${prefixpath1}'/data/*/*'
 INPUT_2B=${prefixpath2}'/data/*/*'
-OUTPUT_2=${destination}
+OUTPUT_2=${destination}_tmp2
 MAPPER_2=partitionMapperJoin
 MAPPER_2_PATH=../tiler/partitionMapperJoin
 REDUCER_2=resque
@@ -289,18 +288,35 @@ hdfs dfs -rm -f -r ${OUTPUT_2}
 
 predicate="st_"${predicate}
 
-
-echo "Mapping data to create physical partitions"
 echo "${MAPPER_2} ${geomid1} ${geomid2} ${SATO_INDEX_FILE_NAME} ${prefixpath1} ${prefixpath2}"
 echo "${REDUCER_2} -p ${predicate} -i ${geomid1} -j ${geomid2} -s ${statistics}"
 
 
-#Map the data back to its partition
+#Perform spatial join
 hadoop jar ${HJAR} -input ${INPUT_2A} -input ${INPUT_2B} -output ${OUTPUT_2} -file ${MAPPER_2_PATH} -file ${REDUCER_2_PATH} -file ${SATO_INDEX_FILE_NAME}  -mapper "${MAPPER_2} ${geomid1} ${geomid2} ${SATO_INDEX_FILE_NAME} ${prefixpath1} ${prefixpath2}" -reducer "${REDUCER_2} -p ${predicate} -i ${geomid1} -j ${geomid2} -s ${statistics} -d ${qdistance}" -cmdenv LD_LIBRARY_PATH=${LD_CONFIG_PATH} -numReduceTasks ${num_reducers}
 
 if [  $? -ne 0 ]; then
-   echo "Mapping data back to its partition has failed!"
+   echo "Spatial computation has failed!"
+   exit 1
 fi
 
 rm -f ${SATO_INDEX_FILE_NAME}
 rm -f ${PARTITION_FILE_DENORM}
+
+INPUT_3=${OUTPUT_2}
+OUTPUT_3=${destination}
+
+hdfs dfs -rm -r ${OUTPUT_3}
+echo -e "Deduplication step" 
+
+hadoop jar ${HJAR} -mapper 'cat -' -reducer 'uniq ' -input ${INPUT_3} -output ${OUTPUT_3} -numReduceTasks ${num_reducers} -jobconf mapred.task.timeout=360000000
+
+succ=$?
+
+if [[ $succ != 0 ]] ; then
+    echo -e "\n\n deduplication stage has failed. \nPlease check the output result for debugging."
+    exit $succ
+fi
+hdfs dfs -rm ${OUTPUT_2}
+
+echo "Done. Results are available at ${OUTPUT_3}"
