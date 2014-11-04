@@ -204,6 +204,7 @@ hadoop jar ${HJAR} -input ${INPUT_3} -output ${OUTPUT_3} -file ${MAPPER_3_PATH} 
 #rm $TEMP_FILE_NAME
 #create a temporary file
 TEMP_FILE_NAME="$(mktemp)"
+hdfs dfs -cat ${OUTPUT_3}/part-00000 
 hdfs dfs -cat ${OUTPUT_3}/part-00000 > ${TEMP_FILE_NAME}
 
 min_x=`(cat ${TEMP_FILE_NAME} | cut -f1)`
@@ -224,6 +225,13 @@ echo ${max_x}
 echo ${min_y}
 echo ${max_y}
 
+echo "dataminx=${min_x}" 
+echo "dataminy=${min_y}" 
+echo "datamaxx=${max_x}" 
+echo "datamaxy=${max_y}" 
+echo "numobjects=${num_objects}" 
+echo "geomid=${geomid}" 
+
 # Write the config file
 echo "dataminx=${min_x}" > ${TEMP_CFG_FILE}
 echo "dataminy=${min_y}" >> ${TEMP_CFG_FILE}
@@ -231,6 +239,7 @@ echo "datamaxx=${max_x}" >> ${TEMP_CFG_FILE}
 echo "datamaxy=${max_y}" >> ${TEMP_CFG_FILE}
 echo "numobjects=${num_objects}" >> ${TEMP_CFG_FILE}
 echo "geomid=${geomid}" >> ${TEMP_CFG_FILE}
+
 
 # Normalize the mbbs
 INPUT_4=${OUTPUT_2}
@@ -263,7 +272,7 @@ echo "partitionsize=${partitionSize}" >> ${TEMP_CFG_FILE}
 
 # Copy the config file into HDFS
 hdfs dfs -put ${TEMP_CFG_FILE} ${prefixpath}/${SATO_CONFIG_FILE_NAME}
-rm -f ${TEMP_CFG_FILE}
+#rm -f ${TEMP_CFG_FILE}
 
 INPUT_MBB_FILE="$(mktemp)"
 #INPUT_MBB_FILE=mbbnormfile
@@ -277,6 +286,8 @@ hdfs dfs -cat "${OUTPUT_4}/*" > "${INPUT_MBB_FILE}"
 
 echo "Start partitioning"
 
+echo "partition size: ${partitionSize}"
+echo "num objs: ${num_objects}"
 # Partition data
 if [ "$method" == "fg" ]; then
    ../step_tear/fg/serial/fgNoMbb.py ${min_x} ${min_y} ${max_x} ${max_y} ${partitionSize} ${num_objects} > ${PARTITION_FILE}
@@ -290,15 +301,16 @@ echo "Done partitioning"
 
 # Remove temporary files
 
-rm ${INPUT_MBB_FILE}
+#rm ${INPUT_MBB_FILE}
 
 hdfs dfs -rm -f -r ${OUTPUT_4}
 
 PARTITION_FILE_DENORM=partfiledenorm
 # Denormalize the MBB file and copy them to HDFS
 python ../step_tear/denormalize.py ${min_x} ${min_y} ${max_x} ${max_y}  < ${PARTITION_FILE} > ${PARTITION_FILE_DENORM}
+echo "python ../step_tear/denormalize.py ${min_x} ${min_y} ${max_x} ${max_y}  < ${PARTITION_FILE} > ${PARTITION_FILE_DENORM}"
 # Copy the partition region mbb file onto HDFS
-rm ${PARTITION_FILE}
+#rm ${PARTITION_FILE}
 cp ${PARTITION_FILE_DENORM} ${SATO_INDEX_FILE_NAME}
 hdfs dfs -put ${PARTITION_FILE_DENORM} ${prefixpath}/${SATO_INDEX_FILE_NAME}
 
@@ -320,7 +332,7 @@ if [  $? -ne 0 ]; then
    echo "Mapping data back to its partition has failed!"
 fi
 
-rm -f ${SATO_INDEX_FILE_NAME}
+#rm -f ${SATO_INDEX_FILE_NAME}
 
 rm -f ${PARTITION_FILE_DENORM}
 

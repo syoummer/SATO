@@ -86,7 +86,12 @@ int main(int ac, char** av) {
   //print tile memory and cleanup tiles space 
   for (vector<RTree::Data*>::iterator it = tiles.begin() ; it != tiles.end(); ++it) 
   {
-    cerr << (*it)->m_id << " " << (*it)->m_region <<endl;
+    //default ostream of Region will print "Low: " and "High: " in addition to coords
+    //cout << (*it)->m_id << " " << (*it)->m_region <<endl;
+    auto &r = (*it)->m_region;
+    cout << (*it)->m_id << TAB << r.m_pLow[0] << TAB << r.m_pLow[1]
+         << TAB << r.m_pHigh[0] << TAB << r.m_pHigh[1] << endl;
+
     delete *it;
   }
   tiles.clear();

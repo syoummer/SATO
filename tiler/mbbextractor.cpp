@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
   double max_y;
 
   GEOM_IDX = atoi(argv[1]) -1;
-  if (GEOM_IDX < 1) {
+  if (GEOM_IDX < 0) {
     cerr << "Invalid arguments for field indices" << endl;
     return -1;
   }

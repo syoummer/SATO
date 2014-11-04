@@ -258,7 +258,7 @@ if [ "$method" == "fg" ]; then
 fi
 
 if [ "$method" == "bsp" ]; then
-   ../step_tear/bsp/serial/bsp -b {max_y} ${partition_size} -i ${INPUT_MBB_FILE} > ${PARTITION_FILE}
+   ../step_tear/bsp/serial/bsp -b ${partitionSize} -i ${INPUT_MBB_FILE} > ${PARTITION_FILE}
 fi
 
 echo "Done partitioning"
